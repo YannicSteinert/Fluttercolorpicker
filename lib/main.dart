@@ -1,63 +1,113 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(),
+      title: 'Color Picker',
+      home: ColorPicker(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  double x = 0.0, y = 0.0;
-
+class ColorPicker extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<StatefulWidget> createState() => _ColorPickerState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _ColorPickerState extends State<ColorPicker> {
+  List<Color> colorPalette = [];
+  int selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    colorPalette.clear();
+    // white to black
+    for (int i = 0; i < 12; i++)
+      colorPalette
+          .add(HSVColor.fromAHSV(1.0, 0.0, 0.0, 1 - (i * 0.08)).toColor());
+    // Hue
+    for (double j = 0; j < 0.9; j = j + 0.1) {
+      // Saturation
+      for (int i = 0; i < 12; i++) {
+        colorPalette.add(
+            HSVColor.fromAHSV(1.0, (360 - (i * 30) % 360), 1 - j, 1.0)
+                .toColor());
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return new Scaffold(
       appBar: AppBar(
-        title: Text('Color Picker'),
+        title: const Text('Color Picker'),
+        backgroundColor: Colors.teal,
       ),
       body: Center(
-        child: MouseRegion(
-          onHover: (details) {
-            setState(() {
-              widget.x = details.localPosition.dx;
-              widget.y = details.localPosition.dy;
-            });
-          },
-          child: Container(
-            width: 300,
-            height: 200,
-            color: Colors.grey,
-            child: Stack(
-              children: [
-                Positioned(
-                  left: widget.x,
-                  top: widget.y,
-                  child: Icon(
-                    Icons.circle,
-                    size: 15,
-                  ),
+        child: Column(
+          children: [
+            Container(
+              clipBehavior: Clip.none,
+              width: 240,
+              height: 220,
+              color: Colors.green,
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  mainAxisExtent: 20,
+                  maxCrossAxisExtent: 20,
+                  childAspectRatio: 1,
                 ),
-              ],
+                itemCount: colorPalette.length,
+                itemBuilder: (BuildContext context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedIndex = index;
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 0.2,
+                        ),
+                        color: colorPalette[index],
+                      ),
+                      child: index == selectedIndex
+                          ? Icon(
+                              Icons.circle_outlined,
+                              size: 20,
+                              color: Color.fromRGBO(
+                                  255 - colorPalette[index].red,
+                                  255 - colorPalette[index].green,
+                                  255 - colorPalette[index].blue,
+                                  1.0),
+                            )
+                          : Center(),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
+            Container(
+              width: 240,
+              height: 50,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black),
+                color: colorPalette[selectedIndex],
+              ),
+              child: Center(
+                  child: Text(
+                colorPalette[selectedIndex].toString(),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              )),
+            ),
+          ],
         ),
       ),
     );
